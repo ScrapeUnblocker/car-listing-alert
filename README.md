@@ -41,7 +41,7 @@ export NTFY_TOPIC=cars-k3j9x2p7
 scrapy crawl cars
 ```
 
-A run takes a few seconds. Every listing is also printed as an item, so `scrapy crawl cars -O cars.json` saves the whole search.
+A run takes a few seconds. `scrapy crawl cars -O cars.json` also saves every listing of the search to a file.
 
 ## 4. Run it on a timer in Spider Cloud
 

@@ -58,7 +58,8 @@ class CarsSpider(scrapy.Spider):
             car_id = hashlib.sha1(car["url"].encode()).hexdigest()[:12]
             ids.append(car_id)
             name = " ".join(x for x in (car.get("make"), car.get("model")) if x)
-            details = " · ".join(str(x) for x in (car.get("first_registration"), car.get("mileage"), car.get("fuel"), car.get("city")) if x)
+            facts = (car.get("first_registration"), car.get("mileage"), car.get("fuel"), car.get("city"))
+            details = " · ".join(str(x) for x in facts if x)
             yield {"car": name, "price": price_text(car), "details": details, "url": car["url"]}
 
             # First run (nothing remembered yet): just remember what is there today.
@@ -76,17 +77,25 @@ class CarsSpider(scrapy.Spider):
             }
             yield scrapy.Request(NTFY, method="POST", body=json.dumps(alert), callback=self.sent, dont_filter=True)
 
-        if not seen:
-            hello = {"topic": topic, "title": "Watching your car search", "message": f"{len(cars)} cars match right now. I'll ping you when a new one is listed.", "tags": ["eyes"]}
+        if seen:
+            print(f"Checked {len(ids)} cars, {sum(i not in seen for i in ids)} new.")
+        else:
+            print(f"Remembered {len(ids)} cars. New ones will go to your phone.")
+            hello = {
+                "topic": topic,
+                "title": "Watching your car search",
+                "message": f"{len(ids)} cars match right now. I'll ping you when a new one is listed.",
+                "tags": ["eyes"],
+            }
             yield scrapy.Request(NTFY, method="POST", body=json.dumps(hello), callback=self.sent, dont_filter=True)
         remember = {"topic": f"{topic}-seen", "message": " ".join(ids)}
         yield scrapy.Request(NTFY, method="POST", body=json.dumps(remember), callback=self.remembered, dont_filter=True)
 
     def sent(self, response):
-        self.logger.info("Alert sent: %s", response.json()["title"])
+        print("Sent to your phone:", response.json()["title"])
 
     def remembered(self, response):
-        self.logger.info("Remembered %d listings", len(response.json()["message"].split()))
+        pass  # the memory topic is silent, nothing to show
 
 
 def price_text(car):
