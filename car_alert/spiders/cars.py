@@ -74,6 +74,7 @@ class CarsSpider(scrapy.Spider):
                 "click": car["url"],
                 "attach": car.get("image_url"),
                 "tags": ["red_car"],
+                "priority": 4,  # high: pops up on the screen, not just in the list
             }
             yield scrapy.Request(NTFY, method="POST", body=json.dumps(alert), callback=self.sent, dont_filter=True)
 
